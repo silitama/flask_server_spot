@@ -22,7 +22,7 @@ display_frame = None
 result_text = "-"
 lock = threading.Lock()
 
-# Loop deteksi yang berjalan di latar belakang
+# Loop deteksi latar belakang
 def detect_loop():
     global raw_frame, display_frame, result_text
     last_result = "-"
@@ -44,7 +44,7 @@ def detect_loop():
 
         time.sleep(0.1)
 
-# Fungsi untuk mengonversi frame menjadi base64
+# Konversi frame ke base64
 def frame_to_base64(frame):
     _, buffer = cv2.imencode('.jpg', frame)
     encoded_frame = base64.b64encode(buffer).decode('utf-8')
@@ -101,12 +101,15 @@ def check_plate(plat_nomor):
     except requests.exceptions.RequestException as e:
         return {"error": str(e), "exists": False}
 
-# Mulai thread deteksi sebelum aplikasi digunakan
+# Mulai thread latar belakang
 def start_background_thread():
     detect_thread = threading.Thread(target=detect_loop, daemon=True)
     detect_thread.start()
 
-# Gunicorn akan memanggil aplikasi ini, jadi kita mulai thread latar belakang sebelum aplikasi mulai menangani request
+# Panggil thread sebelum server siap
 start_background_thread()
 
-# Jangan jalankan app.run() di sini, karena Gunicorn yang akan menanganinya
+# Untuk local run (tidak dipakai di Railway karena pakai Gunicorn)
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
